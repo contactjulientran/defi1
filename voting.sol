@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^ 0.7.4;
+pragma solidity ^0.6.11;
 pragma experimental ABIEncoderV2;
 
 /* import contrat ownable*/
-import "./node_modules/@openzeppelin/contracts/access/Ownable.sol";
+import "./Ownable.sol";
 
 /**
  * @title Voting
