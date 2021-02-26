@@ -14,9 +14,12 @@ import "./node_modules/@openzeppelin/contracts/access/Ownable.sol";
  contract Voting is Ownable{
   
   uint8 public winningProposalId;
-   
+  
+  uint8 proposalIds;
+  
   struct Voter {
     bool isRegistered;
+    address _address;
     bool hasVoted;
     uint votedProposalId;
   }
@@ -27,8 +30,9 @@ import "./node_modules/@openzeppelin/contracts/access/Ownable.sol";
     string description;
     uint voteCount;
   }
-    
-  mapping(address => Voter) public Whitelist;
+
+  mapping(address => Voter) public voters; // liste électorale
+  mapping(address => Voter) public whiteList;
   mapping(uint => Proposal) public proposals;
     
   enum WorkflowStatus {
@@ -40,7 +44,12 @@ import "./node_modules/@openzeppelin/contracts/access/Ownable.sol";
         VotesTallied
     }
     
+    WorkflowStatus public status;
+    
+    
+    
     ///@notice Events
+    event NewVotingSystem();
     event VoterRegistered(address voterAddress);
     event ProposalsRegistrationStarted();
     event ProposalsRegistrationEnded();
@@ -52,18 +61,49 @@ import "./node_modules/@openzeppelin/contracts/access/Ownable.sol";
     event WorkflowStatusChange(WorkflowStatus previousStatus, WorkflowStatus
     newStatus);
     
-    
-   
     constructor() public{
-       emit ProposalsRegistrationStarted();
-       
+      emit NewVotingSystem();
     }
     
     ///@param _address à ajouter à la whitelist
-    function AddVoter(address _address) public onlyOwner {
-        
+    function addVoter(address _address) public onlyOwner {
+      require(status == WorkflowStatus.RegisteringVoters);
+      Voter memory newVoter = Voter(true, _address, false, 0);
+      whiteList[_address] = newVoter;
+      emit VoterRegistered(_address);
+    }
+
+    ///@dev verifier le gas
+    function deleteVoter(address _address) public onlyOwner {
+      delete whiteList[_address];
     }
     
+    function startSession() public onlyOwner {
+      status = WorkflowStatus.ProposalsRegistrationStarted;
+      emit ProposalsRegistrationStarted();
+    }
+
+    ///TODO end ProposalsRegistration Session
+
+    // start Voting Session
+
+    // end Voting Session
+
+  ///@dev Verification de la presence de l'address dans la whitelist
+    modifier whiteListed() {
+      require(whiteList[msg.sender].isRegistered == true);
+      _;
+    }
+
+    function addProposal(string memory _description) public whiteListed {
+      require(status == WorkflowStatus.ProposalsRegistrationStarted);
+      Proposal memory newProposal = Proposal(proposalIds, msg.sender, _description, 0);
+      proposals[proposalIds] = newProposal;
+      emit ProposalRegistered(proposalIds);
+      proposalIds++;
+    }
+
+
     ///@return le statut en cours du vote
     function getEnum() public view returns(WorkflowStatus){}
  }
