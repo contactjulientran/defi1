@@ -3,28 +3,35 @@ pragma solidity ^ 0.7.4;
 pragma experimental ABIEncoderV2;
 
 /* import contrat ownable*/
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.4.0/contracts/access/Ownable.sol";
+import "./node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title Voting
+   @author Sandy,Julien,Stéphane
+   @notice Contrat de vote, getsion par un superadmin
  */
  
  contract Voting is Ownable{
-   uint8 public winningProposalId;
-   struct Voter {
-        bool isRegistered;
-        bool hasVoted;
-        uint votedProposalId;
-    }
+  
+  uint8 public winningProposalId;
+   
+  struct Voter {
+    bool isRegistered;
+    bool hasVoted;
+    uint votedProposalId;
+  }
 
-    struct Proposal {
-        string description;
-        uint voteCount;
-    }
+  struct Proposal {
+    uint8 id;
+    address owner;
+    string description;
+    uint voteCount;
+  }
     
-    mapping(address => Voter) public Whitelist;
+  mapping(address => Voter) public Whitelist;
+  mapping(uint => Proposal) public proposals;
     
-    enum WorkflowStatus {
+  enum WorkflowStatus {
         RegisteringVoters,
         ProposalsRegistrationStarted,
         ProposalsRegistrationEnded,
@@ -33,9 +40,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.4.0/contr
         VotesTallied
     }
     
-   
-    /* Voir library Ownable d'openZepplin*/
-    
+    ///@notice Events
     event VoterRegistered(address voterAddress);
     event ProposalsRegistrationStarted();
     event ProposalsRegistrationEnded();
@@ -54,9 +59,11 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.4.0/contr
        
     }
     
+    ///@param _address à ajouter à la whitelist
     function AddVoter(address _address) public onlyOwner {
         
     }
     
+    ///@return le statut en cours du vote
     function getEnum() public view returns(WorkflowStatus){}
  }
