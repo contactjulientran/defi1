@@ -33,8 +33,10 @@ import "./Ownable.sol";
 
   mapping(address => Voter) public voters; // liste électorale
   mapping(address => Voter) public whiteList;
+
   mapping(uint => Proposal) public proposals;
-    
+  
+
   enum WorkflowStatus {
         RegisteringVoters,
         ProposalsRegistrationStarted,
@@ -65,6 +67,9 @@ import "./Ownable.sol";
       emit NewVotingSystem();
     }
     
+    function getWinningProposal() public view returns(Proposal memory proposal) {
+        return proposals[winningProposalId];
+    }
     ///@param _address à ajouter à la whitelist
     function addVoter(address _address) public onlyOwner {
       require(status == WorkflowStatus.RegisteringVoters);
@@ -78,16 +83,27 @@ import "./Ownable.sol";
       delete whiteList[_address];
     }
     
-    function startSession() public onlyOwner {
+    function startProposalRegistration() public onlyOwner {
       status = WorkflowStatus.ProposalsRegistrationStarted;
       emit ProposalsRegistrationStarted();
     }
 
-    ///TODO end ProposalsRegistration Session
+    function endProposalRegistration() public onlyOwner {
+      status = WorkflowStatus.ProposalsRegistrationEnded;
+      emit ProposalsRegistrationEnded();
+    }
 
-    // start Voting Session
+    function startVotingSession() public onlyOwner {
+      status = WorkflowStatus.VotingSessionStarted;
+      emit VotingSessionStarted();
+    }
 
-    // end Voting Session
+    function endVotingSession() public onlyOwner {
+      status = WorkflowStatus.VotingSessionEnded;
+      emit VotingSessionEnded();
+    }
+   
+   
 
   ///@dev Verification de la presence de l'address dans la whitelist
     modifier whiteListed() {
@@ -95,12 +111,43 @@ import "./Ownable.sol";
       _;
     }
 
+    ///@param _description est le nom de la proposition
     function addProposal(string memory _description) public whiteListed {
+      //obligation d'être dans le workflow correspondant 
       require(status == WorkflowStatus.ProposalsRegistrationStarted);
       Proposal memory newProposal = Proposal(proposalIds, msg.sender, _description, 0);
       proposals[proposalIds] = newProposal;
       emit ProposalRegistered(proposalIds);
       proposalIds++;
+    }
+
+    function deleteProposal(uint _id) public whiteListed {
+      require(proposals[_id].owner == msg.sender);
+      delete proposals[_id];
+    }
+
+    function vote(uint _id) public whiteListed {
+      require(status == WorkflowStatus.VotingSessionStarted);
+      require(whiteList[msg.sender].hasVoted == false);
+      whiteList[msg.sender].hasVoted = true;
+      proposals[_id].voteCount++;
+      emit Voted(msg.sender, _id);
+    }
+
+    function count() public onlyOwner {
+        require(status == WorkflowStatus.VotingSessionEnded);
+        uint8 id;
+        uint highestCount;
+
+        for (uint i = 0; i < proposalIds; i++) {
+          if (highestCount < proposals[i].voteCount) {
+             id = proposals[i].id;
+          }
+          ///@dev à voir les cas particuliers où plusieurs gagnants
+        }
+        winningProposalId = id; 
+        emit VotesTallied();
+        status = WorkflowStatus.VotesTallied;
     }
 
 
