@@ -15,6 +15,7 @@ contract Voting is Ownable {
     uint8 public winningProposalId;
 
     uint8 proposalIds;
+    uint8 votersCount;
 
     struct Voter {
         bool isRegistered;
@@ -73,11 +74,16 @@ contract Voting is Ownable {
         return proposals[winningProposalId];
     }
 
+    function getVotersCount() public view returns (uint8) {
+        return votersCount;
+    }
+
     ///@param _address à ajouter à la whitelist
     function addVoter(address _address) public onlyOwner {
         require(status == WorkflowStatus.RegisteringVoters);
         Voter memory newVoter = Voter(true, _address, false, 0);
         whiteList[_address] = newVoter;
+        votersCount++;
         emit VoterRegistered(_address);
     }
 
