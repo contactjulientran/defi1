@@ -22,7 +22,6 @@ contract("Voting", accounts => {
         return Voting.deployed()
             .then(instance => instance.status())
             .then(status => assert.equal(status.toNumber(), 0), "status should be RegisteringVoters upon deploy")
-
     })
     it("")
 })
