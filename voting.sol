@@ -32,6 +32,7 @@ import "./Ownable.sol";
   }
 
   mapping(address => Voter) public voters; // liste électorale
+  
   mapping(address => Voter) public whiteList;
 
   mapping(uint => Proposal) public proposals;
